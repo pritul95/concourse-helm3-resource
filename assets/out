@@ -22,6 +22,7 @@ namespace=$(jq -r '.source.namespace // "default"' < $payload)
 release=$(jq -r '.source.release // ""' < $payload)
 chart=$(jq -r '.params.chart // ""' < $payload)
 version=$(jq -r '.params.version // ""' < $payload)
+default_version=$(jq -r '.params.default_version // ""' < $payload)
 namespace_overwrite=$(jq -r '.params.namespace // ""' < $payload)
 create_namespace=$(jq -r '.params.create_namespace // "false"' < $payload)
 atomic=$(jq -r '.params.atomic // "false"' < $payload)
@@ -81,6 +82,7 @@ if [[ "$chart" == *.tgz ]] || [[ -d "$source/$chart" ]]; then
   # it's a file/directory
   chart_full="$source/$chart"
   version=""
+  default_version=""
 else
   # get from a repo
   chart_full="$chart"
@@ -168,6 +170,12 @@ helm_upgrade() {
   if [ -n "$version" ]; then
     if [ -f "$source/$version" ]; then
       version=$(cat $source/$version)
+    fi
+    upgrade_args+=("--version" "$version")
+    upgrade_diff_args+=("--version" "$version")
+  elif [ -n "$default_version" ]; then
+    if [ -f "$source/$default_version" ]; then
+      version=$(cat $source/$default_version)
     fi
     upgrade_args+=("--version" "$version")
     upgrade_diff_args+=("--version" "$version")
